@@ -3,6 +3,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import db from "./db.js";
 import multer from "multer";
+import fs from "fs";
 import bodyParser from "body-parser";
 
 const app = express();
@@ -11,6 +12,13 @@ dotenv.config();
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 // app.get("/", express.static(path.join(__dirname, "./public")));
+
+const uploadDir = "./public/uploads/";
+
+// Ensure the upload directory exists or create it
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Set up multer for file storage
 const storage = multer.diskStorage({
