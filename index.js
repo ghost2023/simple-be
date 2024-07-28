@@ -1,8 +1,10 @@
+import dotenv from "dotenv";
 import express from "express";
 import jwt from "jsonwebtoken";
 import db from "./db.js";
 
 const app = express();
+dotenv.config();
 
 app.use(express.json());
 
@@ -10,26 +12,33 @@ app.get("/me", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.json({ user: null });
 
-  const payload = jwt.verify(token, "");
+  const payload = jwt.verify(token, "secret");
 
   res.json({ user: payload });
 });
 
 app.post("/signup", async (req, res) => {
-  const { first_name, last_name, email, password } = req.body;
+  try {
+    const { first_name, last_name, email, password } = req.body;
 
-  const user = await db.user.create({
-    data: {
-      first_name,
-      last_name,
-      email,
-      password,
-    },
-  });
+    const user = await db.user.create({
+      data: {
+        first_name,
+        last_name,
+        email,
+        password,
+      },
+    });
 
-  const token = jwt.sign(user, "");
+    const token = jwt.sign(user, "secret");
 
-  res.json({ user, token });
+    console.log({ user, token });
+
+    res.json({ user, token });
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
 });
 
 app.listen(5000, () => {
