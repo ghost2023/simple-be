@@ -62,6 +62,35 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.get("/products", async (req, res) => {
+  try {
+    const cat = req.query["catagory"];
+
+    let catagoryIds = [];
+
+    if (Array.isArray(cat)) catagoryIds = cat;
+    else if (typeof cat === "string") catagoryIds.push(cat);
+
+    console.log(catagoryIds);
+
+    const products = await db.product.findMany({
+      where: {
+        ProductCatagory: {
+          some: {
+            catagory_id: {
+              in: catagoryIds.map((i) => +i),
+            },
+          },
+        },
+      },
+    });
+    res.json({ products });
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
+});
+
 app.listen(5000, () => {
   console.log("listening on port 5000");
 });
