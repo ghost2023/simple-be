@@ -32,7 +32,28 @@ app.post("/signup", async (req, res) => {
 
     const token = jwt.sign(user, "secret");
 
-    console.log({ user, token });
+    res.json({ user, token });
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await db.user.findFirst({
+      where: {
+        email,
+        password,
+      },
+    });
+
+    if (!user)
+      return res.status(400).json({ error: "incorrect email or password" });
+
+    const token = jwt.sign(user, "secret");
 
     res.json({ user, token });
   } catch (e) {
