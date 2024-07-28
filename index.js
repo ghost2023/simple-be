@@ -78,6 +78,16 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.get("/catagories", async (req, res) => {
+  try {
+    const catagories = await db.catagory.findMany();
+    res.json({ catagories });
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
+});
+
 app.get("/products", async (req, res) => {
   try {
     const cat = req.query["catagory"];
