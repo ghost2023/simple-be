@@ -15,9 +15,22 @@ app.get("/me", (req, res) => {
   res.json({ user: payload });
 });
 
+app.post("/signup", async (req, res) => {
+  const { first_name, last_name, email, password } = req.body;
 
+  const user = await db.user.create({
+    data: {
+      first_name,
+      last_name,
+      email,
+      password,
+    },
+  });
 
+  const token = jwt.sign(user, "");
 
+  res.json({ user, token });
+});
 
 app.listen(5000, () => {
   console.log("listening on port 5000");
