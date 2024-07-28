@@ -2,11 +2,27 @@ import dotenv from "dotenv";
 import express from "express";
 import jwt from "jsonwebtoken";
 import db from "./db.js";
+import multer from "multer";
+import bodyParser from "body-parser";
 
 const app = express();
 dotenv.config();
 
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+// app.get("/", express.static(path.join(__dirname, "./public")));
+
+// Set up multer for file storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public/uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 app.get("/me", (req, res) => {
   const token = req.headers["authorization"];
@@ -85,6 +101,37 @@ app.get("/products", async (req, res) => {
       },
     });
     res.json({ products });
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
+});
+
+app.get("/products/new", upload.single("image"), async (req, res) => {
+  try {
+    const token = req.headers["authorization"];
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+    const payload = jwt.verify(token, "secret");
+
+    if (!payload) return res.status(401).json({ error: "Unauthorized" });
+
+    const image = req.file;
+    const { name, location, price } = req.body;
+
+    console.log(image, name);
+
+    const product = await db.product.create({
+      data: {
+        name,
+        location,
+        price: +price,
+        image: `/uploads/${image.filename}`,
+        user_id: payload.id,
+      },
+    });
+
+    res.json({ product });
   } catch (e) {
     console.log(e);
     res.status(500).end();
