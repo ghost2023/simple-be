@@ -107,7 +107,7 @@ app.get("/products", async (req, res) => {
   }
 });
 
-app.get("/products/new", upload.single("image"), async (req, res) => {
+app.post("/products/new", upload.single("image"), async (req, res) => {
   try {
     const token = req.headers["authorization"];
     if (!token) return res.status(401).json({ error: "Unauthorized" });
@@ -138,6 +138,32 @@ app.get("/products/new", upload.single("image"), async (req, res) => {
   }
 });
 
+app.get("/products/:id", async (req, res) => {
+  try {
+    const id = +req.params.id;
+
+    const product = await db.product.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            first_name: true,
+            last_name: true,
+          },
+        },
+      },
+    });
+
+    res.json({ product });
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
+});
 app.get("/catagories", async (req, res) => {
   try {
     const catagories = await db.catagory.findMany();
